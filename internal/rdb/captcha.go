@@ -12,7 +12,6 @@ import (
 type Captcha struct {
 	*Rdb
 	driver     *driver
-	captcha    *base64Captcha.Captcha
 	redisStore *redisStore
 }
 
@@ -30,21 +29,20 @@ type redisStore struct {
 	*Rdb
 }
 
-func (t *redisStore) Set(id string, value string) error {
-	return t.db.SetNX(context.Background(), "captcha:"+id, strings.ToLower(value), time.Minute*15).Err()
+func (t *redisStore) Set(id string, name string, value string, expr time.Duration) error {
+	return t.db.SetNX(context.Background(), "captcha_"+name+":"+id, strings.ToLower(value), expr).Err()
 }
 
-func (t *redisStore) Get(id string, clear bool) string {
-	value, err := t.db.GetDel(context.Background(), "captcha:"+id).Result()
+func (t *redisStore) Get(id string, name string) string {
+	value, err := t.db.GetDel(context.Background(), "captcha_"+name+":"+id).Result()
 	if err != nil {
 		return ""
 	}
 	return value
 }
 
-func (t *redisStore) Verify(id, answer string, clear bool) bool {
-	if answer == t.Get(id, clear) {
-		t.db.Del(context.Background(), id)
+func (t *redisStore) Verify(id, name, answer string) bool {
+	if answer == t.Get(id, name) {
 		return true
 	}
 	return false
@@ -68,14 +66,23 @@ func NewCaptcha(rdb *Rdb) *Captcha {
 		},
 		redisStore: &redisStore{rdb},
 	}
-	c.captcha = base64Captcha.NewCaptcha(c.driver, c.redisStore)
 	return c
 }
 
-func (t *Captcha) Generate() (id string, b64s string, answer string, err error) {
-	return t.captcha.Generate()
+func (t *Captcha) Generate(name string, expr time.Duration) (id string, b64s string, answer string, err error) {
+	id, content, answer := t.driver.GenerateIdQuestionAnswer()
+	item, err := t.driver.DrawCaptcha(content)
+	if err != nil {
+		return "", "", "", err
+	}
+	err = t.redisStore.Set(id, name, answer, expr)
+	if err != nil {
+		return "", "", "", err
+	}
+	b64s = item.EncodeB64string()
+	return
 }
 
-func (t *Captcha) Verify(id string, answer string) (match bool) {
-	return t.captcha.Verify(id, answer, true)
+func (t *Captcha) Verify(id string, name string, answer string) (match bool) {
+	return t.redisStore.Verify(id, name, answer)
 }

@@ -16,8 +16,9 @@ import (
 )
 
 var (
-	node = &snowflake.Node{}
-	key  = &rsa.PrivateKey{}
+	node   = &snowflake.Node{}
+	key    = &rsa.PrivateKey{}
+	public = ""
 )
 
 func init() {
@@ -40,10 +41,26 @@ func loadKey() {
 		panic(err)
 	}
 	block, _ := pem.Decode(b)
-	key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+	a, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		panic(err)
 	}
+	ok := false
+	key, ok = a.(*rsa.PrivateKey)
+	if !ok {
+		panic(errors.New("unexpected private key type"))
+	}
+	f1, err := os.Open("public.pem")
+	if err != nil {
+		panic(err)
+	}
+	defer f1.Close()
+	b1, err := io.ReadAll(f1)
+	if err != nil {
+		panic(err)
+	}
+	block1, _ := pem.Decode(b1)
+	public = base64.StdEncoding.EncodeToString(block1.Bytes)
 }
 
 func MySqlErr(err error) (number uint16, message string) {
@@ -63,40 +80,6 @@ func GenerateToken() string {
 	return uuid.New().String()
 }
 
-func generateKey() error {
-	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return err
-	}
-	privBytes := x509.MarshalPKCS1PrivateKey(privKey)
-	f1, err := os.Create("private.pem")
-	if err != nil {
-		return err
-	}
-	defer f1.Close()
-	err = pem.Encode(f1, &pem.Block{
-		Type:    "RSA PRIVATE KEY",
-		Headers: nil,
-		Bytes:   privBytes,
-	})
-	if err != nil {
-		return err
-	}
-	publKey := &privKey.PublicKey
-	publBytes := x509.MarshalPKCS1PublicKey(publKey)
-	f2, err := os.Create("public.pem")
-	if err != nil {
-		return err
-	}
-	defer f2.Close()
-	err = pem.Encode(f2, &pem.Block{
-		Type:    "RSA PUBLIC KEY",
-		Headers: nil,
-		Bytes:   publBytes,
-	})
-	return err
-}
-
 func Decrypt(message string) (data []byte, err error) {
 	b1, err := base64.StdEncoding.DecodeString(message)
 	if err != nil {
@@ -104,6 +87,10 @@ func Decrypt(message string) (data []byte, err error) {
 	}
 	data, err = rsa.DecryptPKCS1v15(rand.Reader, key, b1)
 	return
+}
+
+func GetPublicKey() string {
+	return public
 }
 
 func Encrypt(message []byte) (string, error) {

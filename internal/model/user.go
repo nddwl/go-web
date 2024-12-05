@@ -38,6 +38,8 @@ type UserCreate struct {
 	Avatar   string `validate:"omitempty,url" json:"avatar"`
 	Email    string `validate:"email" json:"email"`
 	Phone    string `validate:"omitempty,phone" json:"phone"`
+	Code     string `json:"code" validate:"code"`
+	Session  string `json:"-"`
 }
 
 type UserUpdate struct {

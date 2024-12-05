@@ -1,3 +1,4 @@
+CREATE DATABASE IF NOT EXISTS 'order';
 USE `order`;
 CREATE TABLE `user`(
                        `id` int unsigned NOT NULL AUTO_INCREMENT,

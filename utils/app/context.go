@@ -138,7 +138,7 @@ func (ctx *Context) ParseUserAgent() (ua string, deviceType, deviceName string) 
 		} else if strings.Contains(ua, "Linux") {
 			deviceName = "Linux PC"
 		} else {
-			deviceName = "未知"
+			deviceName = "未知设备"
 		}
 	}
 	return

@@ -1,6 +1,5 @@
 *.json
 *.pem
 *_test.go
-*.md
 *.png
 .idea

@@ -25,6 +25,10 @@ func (t *User) Create(user model.UserCreate) (m model.User, err error) {
 		err = ecode.FormatError
 		return
 	}
+	if !t.Rdb.Captcha.Verify(user.Session, "register", user.Code) {
+		err = ecode.BadRequest
+		return
+	}
 	user.Uid = utils.GenerateUid()
 	user.Password, err = utils.HashPassword(user.Password)
 	if err != nil {
@@ -99,7 +103,7 @@ func (t *User) Login(dto model.PasswordDto) (uid int64, err error) {
 		err = ecode.FormatError
 		return
 	}
-	if !t.Service.Rdb.Captcha.Verify(dto.Session, dto.Code) {
+	if !t.Service.Rdb.Captcha.Verify(dto.Session, "login", dto.Code) {
 		err = ecode.BadRequest
 		return
 	}

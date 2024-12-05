@@ -26,11 +26,13 @@ func New() *App {
 
 func (app *App) parse(ctx *Context) {
 	token, err := ctx.Cookie("__PASSPORT")
-	if err == nil {
-		ctx.Passport = &model.Passport{Token: token}
+	ctx.Passport = &model.Passport{
+		Ip: ctx.ClientIP(),
+		Ua: ctx.GetHeader("User-Agent"),
 	}
-	ctx.Passport.Ip = ctx.ClientIP()
-	ctx.Passport.Ua = ctx.GetHeader("User-Agent")
+	if err == nil {
+		ctx.Passport.Token = token
+	}
 	if ctx.GetHeader("Content-Type") == "application/json" {
 		err = ctx.Ctx.ShouldBindJSON(&ctx.Request)
 		if err != nil {

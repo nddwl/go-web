@@ -6,6 +6,7 @@ import (
 	"go-web/utils"
 	"go-web/utils/app"
 	"go-web/utils/ecode"
+	"time"
 )
 
 type User struct {
@@ -44,7 +45,15 @@ func (t *User) Create(ctx *app.Context) {
 		ctx.JSON(nil, ecode.FormatError)
 		return
 	}
+	session, err := ctx.Cookie("SESS__REGISTER")
+	if err != nil {
+		ctx.JSON(nil, ecode.BadRequest)
+	}
+	user.Session = session
 	_, err = t.Service.User.Create(user)
+	if err == nil {
+		ctx.SetCookies("SESS__REGISTER", "", 0, "/user/create", "127.0.0.1", false, true)
+	}
 	ctx.JSON(nil, err)
 }
 
@@ -110,13 +119,30 @@ func (t *User) Auth(ctx *app.Context) {
 	ctx.JSON(nil, err)
 }
 
-func (t *User) Login(ctx *app.Context) {
-	id, b64s, _, err := t.Service.Rdb.Captcha.Generate()
+func (t *User) Register(ctx *app.Context) {
+	id, b64s, _, err := t.Service.Rdb.Captcha.Generate("register", time.Minute*15)
 	if err != nil {
 		ctx.JSON(nil, err)
+		return
+	}
+	ctx.SetCookies("SESS__REGISTER", id, -1, "/user/create", "", false, true)
+	ctx.JSON(&struct {
+		Code   string
+		Public string
+	}{b64s, utils.GetPublicKey()}, nil)
+}
+
+func (t *User) Login(ctx *app.Context) {
+	id, b64s, _, err := t.Service.Rdb.Captcha.Generate("login", time.Minute*15)
+	if err != nil {
+		ctx.JSON(nil, err)
+		return
 	}
 	ctx.SetCookies("SESS__LOGIN", id, -1, "/user/auth", "", false, true)
-	ctx.String(200, "%s", b64s)
+	ctx.JSON(&struct {
+		Code   string
+		Public string
+	}{b64s, utils.GetPublicKey()}, nil)
 }
 
 func (t *User) Logout(ctx *app.Context) {

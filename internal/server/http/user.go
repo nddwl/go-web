@@ -30,7 +30,6 @@ func (t *User) initGroup() {
 	t.Group.POST("/logout", t.Logout)
 	t.Group.GET("/isNameExists", t.IsNameExists)
 	t.Group.POST("/sign", t.Sign)
-	t.Group.GET("/findActivityRecord", t.FindActivityRecord)
 }
 
 func (t *User) Create(ctx *app.Context) {
@@ -187,13 +186,4 @@ func (t *User) GetUser(ctx *app.Context) {
 		return
 	}
 	ctx.User = &user
-}
-
-func (t *User) FindActivityRecord(ctx *app.Context) {
-	if !ctx.IsLogin() {
-		ctx.JSON(nil, ecode.Forbidden)
-		return
-	}
-	m, err := t.Service.Activity.FindRecord(ctx.Passport.Uid)
-	ctx.JSON(&m, err)
 }

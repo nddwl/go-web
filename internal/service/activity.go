@@ -147,8 +147,8 @@ func (t *Activity) CreateRecord() (err error) {
 	return t.Rmq.Activity.ConsumeRecord(t.Dao.Activity.CreateRecord)
 }
 
-func (t *Activity) FindRecord(uid int64) (m []model.ActivityRecord, err error) {
-	m, err = t.Dao.Activity.FindRecord(uid)
+func (t *Activity) FindRecord(uid int64, page int) (m []model.ActivityRecord, p model.Pagination, err error) {
+	m, p, err = t.Dao.Activity.FindRecord(uid, page)
 	return
 }
 

@@ -1,5 +1,7 @@
 package model
 
+import "gorm.io/gorm"
+
 type Activity struct {
 	Model
 	UUID   string `validate:"token" json:"uuid"`
@@ -29,4 +31,33 @@ type ActivityRecord struct {
 	ActivityUUID string `json:"activity_uuid"`
 	PrizeUUID    string `json:"prize_uuid"`
 	Remark       string `json:"remark"`
+}
+
+type Pagination struct {
+	Current  int   `json:"current"`
+	PageSize int   `json:"page_size"`
+	Total    int64 `json:"total"`
+}
+
+func (t *Pagination) Sql() func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if t.Current <= 0 {
+			t.Current = 1
+		}
+
+		switch {
+		case t.PageSize > 100:
+			t.PageSize = 100
+		case t.PageSize <= 0:
+			t.PageSize = 20
+		}
+
+		return db.Offset((t.Current - 1) * t.PageSize).Limit(t.PageSize)
+	}
+}
+
+func (t *Pagination) Copy(p Pagination) {
+	t.Current = p.Current
+	t.PageSize = p.PageSize
+	t.Total = p.Total
 }

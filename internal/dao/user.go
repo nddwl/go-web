@@ -58,7 +58,7 @@ func (t *User) Update(uid int64, key string, value string) (err error) {
 }
 
 func (t *User) Find(name string) (m model.User, err error) {
-	err = t.db.Model(&model.User{}).Where("name", name).First(&m).Error
+	err = t.db.Model(&model.User{}).Omit("email", "phone").Where("name", name).First(&m).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = ecode.UserNotExist
 	}

@@ -34,6 +34,7 @@ func (t *Activity) initGroup() {
 	t.Group.POST("/updatePrizeStock", t.UpdatePrizeStock)
 	t.Group.POST("/lottery", t.Lottery)
 	t.Group.POST("/createRecord", t.CreateRecord)
+	t.Group.GET("/findRecord", t.FindRecord)
 }
 
 func (t *Activity) Create(ctx *app.Context) {
@@ -173,4 +174,17 @@ func (t *Activity) CreateRecord(ctx *app.Context) {
 	}
 	err := t.Service.Activity.CreateRecord()
 	ctx.JSON(nil, err)
+}
+
+func (t *Activity) FindRecord(ctx *app.Context) {
+	if !ctx.IsLogin() {
+		ctx.JSON(nil, ecode.Forbidden)
+		return
+	}
+	page := ctx.ParseRequestResource("page").Int()
+	m, p, err := t.Service.Activity.FindRecord(ctx.Passport.Uid, int(page))
+	ctx.JSON(struct {
+		Record     []model.ActivityRecord
+		Pagination model.Pagination
+	}{m, p}, err)
 }

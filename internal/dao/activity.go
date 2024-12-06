@@ -157,7 +157,16 @@ func (t *Activity) CreateRecord(record []model.ActivityRecord) (err error) {
 	return
 }
 
-func (t *Activity) FindRecord(uid int64) (m []model.ActivityRecord, err error) {
-	err = t.db.Model(&model.ActivityRecord{}).Where("uid", uid).Find(&m).Error
+func (t *Activity) FindRecord(uid int64, page int) (m []model.ActivityRecord, p model.Pagination, err error) {
+	p = model.Pagination{
+		Current:  page,
+		PageSize: 20,
+		Total:    0,
+	}
+	err = t.db.Model(&model.ActivityRecord{}).Where("uid", uid).Count(&p.Total).Error
+	if err != nil {
+		return
+	}
+	err = t.db.Model(&model.ActivityRecord{}).Scopes(p.Sql()).Where("uid", uid).Find(&m).Error
 	return
 }

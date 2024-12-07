@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Activity struct {
 	Model
-	UUID   string `validate:"token" json:"uuid"`
+	UUID   int64  `validate:"uid" json:"uuid"`
 	Name   string `validate:"required,min=3,max=50" json:"name"`
 	Url    string `validate:"omitempty,url" json:"url"`
 	Type   uint8  `json:"type"`
@@ -15,8 +15,8 @@ type Activity struct {
 
 type Prize struct {
 	Model
-	ActivityUUID string `json:"activity_uuid" validate:"token"`
-	UUID         string `validate:"token" json:"uuid"`
+	ActivityUUID int64  `json:"activity_uuid" validate:"uid"`
+	UUID         int64  `validate:"uid" json:"uuid"`
 	Name         string `validate:"required,min=3,max=10" json:"name"`
 	Type         uint8  `json:"type"`
 	Value        string `validate:"required,max=20" json:"value"`
@@ -28,8 +28,8 @@ type Prize struct {
 type ActivityRecord struct {
 	Model
 	Uid          int64  `json:"uid"`
-	ActivityUUID string `json:"activity_uuid"`
-	PrizeUUID    string `json:"prize_uuid"`
+	ActivityUUID int64  `json:"activity_uuid"`
+	PrizeUUID    int64  `json:"prize_uuid"`
 	Remark       string `json:"remark"`
 }
 

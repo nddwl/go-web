@@ -16,4 +16,5 @@ var (
 	UserNotExist        = New(301006, "用户不存在")
 
 	ActivityIsOver = New(401001, "活动不存在或已经结束")
+	ActivityIsList = New(401002, "活动已上架暂无法修改")
 )

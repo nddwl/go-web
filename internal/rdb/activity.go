@@ -6,6 +6,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go-web/internal/model"
 	"go-web/utils/ecode"
+	"strconv"
 )
 
 type Activity struct {
@@ -16,10 +17,11 @@ func NewActivity(rdb *Rdb) *Activity {
 	return &Activity{rdb}
 }
 
-func (t *Activity) List(activityUUID string, prize []model.Prize) (result []string, err error) {
+func (t *Activity) List(activityUUID int64, prize []model.Prize) (err error) {
 	ctx := context.Background()
+	uuid := strconv.FormatInt(activityUUID, 10)
 	err = t.db.Watch(ctx, func(tx *redis.Tx) error {
-		cmder, err1 := tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+		_, err1 := tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
 			members := make([]redis.Z, len(prize))
 			values := make(map[string]interface{}, len(prize))
 			for k, v := range prize {
@@ -27,30 +29,26 @@ func (t *Activity) List(activityUUID string, prize []model.Prize) (result []stri
 					Score:  float64(v.Score),
 					Member: v.UUID,
 				}
-				values[v.UUID] = v.Stock
+				values[strconv.FormatInt(v.UUID, 10)] = v.Stock
 			}
-			pipe.Del(ctx, "activity_stock:"+activityUUID)
-			pipe.HSet(ctx, "activity_stock:"+activityUUID, values)
-			pipe.Del(ctx, "activity:"+activityUUID)
-			pipe.ZAddNX(ctx, "activity:"+activityUUID, members...)
+			pipe.Del(ctx, "activity_stock:"+uuid)
+			pipe.HSet(ctx, "activity_stock:"+uuid, values)
+			pipe.Del(ctx, "activity:"+uuid)
+			pipe.ZAdd(ctx, "activity:"+uuid, members...)
 			return nil
 		})
 		if err1 != nil {
 			return err1
 		}
-		result = make([]string, len(cmder))
-		for i := 0; i < len(result); i++ {
-			result[i] = cmder[i].String()
-		}
 		return nil
-	}, "activity_stock:"+activityUUID, "activity:"+activityUUID)
+	}, "activity_stock:"+uuid, "activity:"+uuid)
 	return
 }
 
-func (t *Activity) GetPrizeStock(activityUUID string) (map[string]string, error) {
+func (t *Activity) GetPrizeStock(activityUUID int64) (map[string]string, error) {
 	ctx := context.Background()
 	const luaScript = `return redis.call("HGETALL", KEYS[1])`
-	result, err := t.db.Eval(ctx, luaScript, []string{"activity_stock:" + activityUUID}).Result()
+	result, err := t.db.Eval(ctx, luaScript, []string{"activity_stock:" + strconv.FormatInt(activityUUID, 10)}).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -66,20 +64,21 @@ func (t *Activity) GetPrizeStock(activityUUID string) (map[string]string, error)
 	return nil, fmt.Errorf("unexpected result type")
 }
 
-func (t *Activity) UnList(activityUUID string) error {
+func (t *Activity) UnList(activityUUID int64) error {
+	uuid := strconv.FormatInt(activityUUID, 10)
 	const luaScript = `return redis.call("del", KEYS[1], KEYS[2])`
 	return t.db.Eval(context.Background(), luaScript, []string{
-		"activity:" + activityUUID,
-		"activity_stock:" + activityUUID,
+		"activity:" + uuid,
+		"activity_stock:" + uuid,
 	}).Err()
 }
 
-func (t *Activity) Lottery(activityUUID string) (prizeUUID string, err error) {
+func (t *Activity) Lottery(activityUUID int64) (prizeUUID int64, err error) {
 
 	const luaScript = `
     local prizeUUIDs = redis.call("ZRANDMEMBER", "activity:" .. ARGV[1], 1)
     if #prizeUUIDs == 0 then
-        return ""
+        return 0
     end
 
     local prizeUUID = prizeUUIDs[1]
@@ -98,9 +97,20 @@ func (t *Activity) Lottery(activityUUID string) (prizeUUID string, err error) {
 	if err != nil {
 		return
 	}
-	prizeUUID = result.(string)
-	if prizeUUID == "" {
+	prizeUUID, _ = strconv.ParseInt(result.(string), 10, 64)
+	if prizeUUID == 0 {
 		err = ecode.ActivityIsOver
+	}
+	return
+}
+
+func (t *Activity) IsList(activityUUID int64) (list bool, err error) {
+	i, err := t.db.Exists(context.Background(), "activity:"+strconv.FormatInt(activityUUID, 10)).Result()
+	if err != nil {
+		return
+	}
+	if i == 1 {
+		list = true
 	}
 	return
 }

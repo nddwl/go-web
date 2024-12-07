@@ -157,7 +157,7 @@ func (t *User) Logout(ctx *app.Context) {
 func (t *User) IsNameExists(ctx *app.Context) {
 	result := ctx.ParseRequestResource("name")
 	exists, err := t.Service.User.IsNameExists(result.String())
-	ctx.JSON(exists, err)
+	ctx.JSON(&exists, err)
 }
 
 func (t *User) Sign(ctx *app.Context) {
@@ -170,7 +170,7 @@ func (t *User) Sign(ctx *app.Context) {
 		ctx.JSON(nil, err)
 		return
 	}
-	ctx.JSON(m, nil)
+	ctx.JSON(&m, nil)
 }
 
 func (t *User) GetUser(ctx *app.Context) {

@@ -18,7 +18,7 @@ func NewActivity(service *Service) *Activity {
 }
 
 func (t *Activity) Create(activity model.Activity) (m model.Activity, err error) {
-	activity.UUID = utils.GenerateToken()
+	activity.UUID = utils.GenerateUid()
 	err = validate.Struct(activity)
 	if err != nil {
 		err = ecode.FormatError
@@ -28,9 +28,17 @@ func (t *Activity) Create(activity model.Activity) (m model.Activity, err error)
 	return
 }
 
-func (t *Activity) Delete(uuid string) (err error) {
-	if !validate.Token(uuid) {
+func (t *Activity) Delete(uuid int64) (err error) {
+	if !validate.Uid(uuid) {
 		err = ecode.FormatError
+		return
+	}
+	list, err := t.Rdb.Activity.IsList(uuid)
+	if err != nil {
+		return
+	}
+	if list {
+		err = ecode.ActivityIsList
 		return
 	}
 	err = t.Dao.Activity.Delete(uuid)
@@ -43,12 +51,20 @@ func (t *Activity) Update(activity model.Activity) (err error) {
 		err = ecode.FormatError
 		return
 	}
+	list, err := t.Rdb.Activity.IsList(activity.UUID)
+	if err != nil {
+		return
+	}
+	if list {
+		err = ecode.ActivityIsList
+		return
+	}
 	err = t.Dao.Activity.Update(activity)
 	return
 }
 
-func (t *Activity) Find(uuid string) (m1 model.Activity, m2 []model.Prize, err error) {
-	if !validate.Token(uuid) {
+func (t *Activity) Find(uuid int64) (m1 model.Activity, m2 []model.Prize, err error) {
+	if !validate.Uid(uuid) {
 		err = ecode.FormatError
 		return
 	}
@@ -61,8 +77,8 @@ func (t *Activity) FindAll() (m []model.Activity, err error) {
 	return
 }
 
-func (t *Activity) List(uuid string) (result []string, err error) {
-	if !validate.Token(uuid) {
+func (t *Activity) List(uuid int64) (err error) {
+	if !validate.Uid(uuid) {
 		err = ecode.FormatError
 		return
 	}
@@ -73,8 +89,8 @@ func (t *Activity) List(uuid string) (result []string, err error) {
 	return t.Rdb.Activity.List(uuid, prize)
 }
 
-func (t *Activity) UnList(uuid string) (err error) {
-	if !validate.Token(uuid) {
+func (t *Activity) UnList(uuid int64) (err error) {
+	if !validate.Uid(uuid) {
 		err = ecode.FormatError
 		return
 	}
@@ -91,25 +107,47 @@ func (t *Activity) CreatePrize(prize ...model.Prize) (m []*model.Prize, err erro
 		err = ecode.FormatError
 		return
 	}
+	var activityUUID int64
 	for i := 0; i < len(prize); i++ {
-		prize[i].UUID = utils.GenerateToken()
+		prize[i].UUID = utils.GenerateUid()
 		err = validate.Struct(prize[i])
 		if err != nil {
 			err = ecode.FormatError
 			return
 		}
+		if prize[i].ActivityUUID != activityUUID {
+			activityUUID = prize[i].ActivityUUID
+			list, err1 := t.Rdb.Activity.IsList(activityUUID)
+			if err1 != nil {
+				err = err1
+				return
+			}
+			if list {
+				err = ecode.ActivityIsList
+				return
+			}
+		}
+
 	}
 	m, err = t.Dao.Activity.CreatePrize(prize...)
 	return
 }
 
-func (t *Activity) DeletePrize(activityUUID string, uuid ...string) (err error) {
-	if !validate.Token(activityUUID) || len(uuid) < 1 {
+func (t *Activity) DeletePrize(activityUUID int64, uuid ...int64) (err error) {
+	if !validate.Uid(activityUUID) || len(uuid) < 1 {
 		err = ecode.FormatError
 		return
 	}
+	list, err := t.Rdb.Activity.IsList(activityUUID)
+	if err != nil {
+		return
+	}
+	if list {
+		err = ecode.ActivityIsList
+		return
+	}
 	for i := 0; i < len(uuid); i++ {
-		if !validate.Token(uuid[i]) {
+		if !validate.Uid(uuid[i]) {
 			err = ecode.FormatError
 			return
 		}
@@ -123,18 +161,31 @@ func (t *Activity) UpdatePrize(prize ...model.Prize) (err error) {
 		err = ecode.FormatError
 		return
 	}
+	var activityUUID int64
 	for i := 0; i < len(prize); i++ {
 		err = validate.Struct(prize[i])
 		if err != nil {
 			err = ecode.FormatError
 			return
 		}
+		if prize[i].ActivityUUID != activityUUID {
+			activityUUID = prize[i].ActivityUUID
+			list, err1 := t.Rdb.Activity.IsList(activityUUID)
+			if err1 != nil {
+				err = err1
+				return
+			}
+			if list {
+				err = ecode.ActivityIsList
+				return
+			}
+		}
 	}
 	err = t.Dao.Activity.UpdatePrize(prize...)
 	return
 }
 
-func (t *Activity) UpdatePrizeStock(activityUUID string) (data map[string]string, err error) {
+func (t *Activity) UpdatePrizeStock(activityUUID int64) (data map[string]string, err error) {
 	data, err = t.Rdb.Activity.GetPrizeStock(activityUUID)
 	if len(data) < 1 {
 		return
@@ -152,8 +203,8 @@ func (t *Activity) FindRecord(uid int64, page int) (m []model.ActivityRecord, p 
 	return
 }
 
-func (t *Activity) Lottery(activityUUID string, uid int64) (m model.ActivityRecord, err error) {
-	if !validate.Token(activityUUID) {
+func (t *Activity) Lottery(activityUUID int64, uid int64) (m model.ActivityRecord, err error) {
+	if !validate.Uid(activityUUID) {
 		err = ecode.FormatError
 		return
 	}

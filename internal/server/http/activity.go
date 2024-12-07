@@ -58,7 +58,7 @@ func (t *Activity) Delete(ctx *app.Context) {
 		return
 	}
 	result := ctx.ParseRequestResource("activity_uuid")
-	err := t.Service.Activity.Delete(result.String())
+	err := t.Service.Activity.Delete(result.Int())
 	ctx.JSON(nil, err)
 }
 
@@ -78,7 +78,7 @@ func (t *Activity) Update(ctx *app.Context) {
 }
 func (t *Activity) Find(ctx *app.Context) {
 	result := ctx.ParseRequestResource("activity_uuid")
-	m1, m2, err := t.Service.Activity.Find(result.String())
+	m1, m2, err := t.Service.Activity.Find(result.Int())
 	ctx.JSON(&struct {
 		Activity model.Activity
 		Prize    []model.Prize
@@ -96,8 +96,8 @@ func (t *Activity) List(ctx *app.Context) {
 		return
 	}
 	result := ctx.ParseRequestResource("activity_uuid")
-	result1, err := t.Service.Activity.List(result.String())
-	ctx.JSON(&result1, err)
+	err := t.Service.Activity.List(result.Int())
+	ctx.JSON(nil, err)
 }
 
 func (t *Activity) UnList(ctx *app.Context) {
@@ -106,7 +106,7 @@ func (t *Activity) UnList(ctx *app.Context) {
 		return
 	}
 	result := ctx.ParseRequestResource("activity_uuid")
-	err := t.Service.Activity.UnList(result.String())
+	err := t.Service.Activity.UnList(result.Int())
 	ctx.JSON(nil, err)
 }
 
@@ -129,11 +129,11 @@ func (t *Activity) DeletePrize(ctx *app.Context) {
 		return
 	}
 	result := ctx.ParseRequestResourceMany("activity_uuid", "prize_uuid")
-	var name []string
+	var name []int64
 	for _, v := range result[1].Array() {
-		name = append(name, v.String())
+		name = append(name, v.Int())
 	}
-	err := t.Service.Activity.DeletePrize(result[0].String(), name...)
+	err := t.Service.Activity.DeletePrize(result[0].Int(), name...)
 	ctx.JSON(nil, err)
 }
 func (t *Activity) UpdatePrize(ctx *app.Context) {
@@ -157,13 +157,13 @@ func (t *Activity) UpdatePrizeStock(ctx *app.Context) {
 		return
 	}
 	result := ctx.ParseRequestResource("activity_uuid")
-	data, err := t.Service.Activity.UpdatePrizeStock(result.String())
+	data, err := t.Service.Activity.UpdatePrizeStock(result.Int())
 	ctx.JSON(&data, err)
 }
 
 func (t *Activity) Lottery(ctx *app.Context) {
 	uuid := ctx.ParseRequestResource("activity_uuid")
-	m, err := t.Service.Activity.Lottery(uuid.String(), ctx.Passport.Uid)
+	m, err := t.Service.Activity.Lottery(uuid.Int(), ctx.Passport.Uid)
 	ctx.JSON(&m, err)
 }
 
@@ -183,7 +183,7 @@ func (t *Activity) FindRecord(ctx *app.Context) {
 	}
 	page := ctx.ParseRequestResource("page").Int()
 	m, p, err := t.Service.Activity.FindRecord(ctx.Passport.Uid, int(page))
-	ctx.JSON(struct {
+	ctx.JSON(&struct {
 		Record     []model.ActivityRecord
 		Pagination model.Pagination
 	}{m, p}, err)

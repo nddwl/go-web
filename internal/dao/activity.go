@@ -30,7 +30,7 @@ func (t *Activity) Create(activity model.Activity) (m model.Activity, err error)
 	return
 }
 
-func (t *Activity) Delete(uuid string) (err error) {
+func (t *Activity) Delete(uuid int64) (err error) {
 	tx := t.db.Begin()
 	if tx.Error != nil {
 		err = tx.Error
@@ -54,7 +54,7 @@ func (t *Activity) Update(activity model.Activity) (err error) {
 	return
 }
 
-func (t *Activity) Find(uuid string) (m1 model.Activity, m2 []model.Prize, err error) {
+func (t *Activity) Find(uuid int64) (m1 model.Activity, m2 []model.Prize, err error) {
 	err = t.db.Model(&model.Activity{}).Where("uuid", uuid).Where("status", 1).First(&m1).Error
 	if err != nil {
 		if errors.As(err, &gorm.ErrRecordNotFound) {
@@ -71,7 +71,7 @@ func (t *Activity) FindAll() (m []model.Activity, err error) {
 	return
 }
 
-func (t *Activity) List(uuid string) (prize []model.Prize, err error) {
+func (t *Activity) List(uuid int64) (prize []model.Prize, err error) {
 	tx := t.db.Begin()
 	if tx.Error != nil {
 		return
@@ -90,7 +90,7 @@ func (t *Activity) List(uuid string) (prize []model.Prize, err error) {
 	return
 }
 
-func (t *Activity) UnList(uuid string) (err error) {
+func (t *Activity) UnList(uuid int64) (err error) {
 	err = t.db.Model(&model.Activity{}).Where("uuid", uuid).Update("status", 0).Error
 	return
 }
@@ -113,7 +113,7 @@ func (t *Activity) CreatePrize(prize ...model.Prize) (m []*model.Prize, err erro
 	return
 }
 
-func (t *Activity) DeletePrize(activityUUID string, uuid ...string) (err error) {
+func (t *Activity) DeletePrize(activityUUID int64, uuid ...int64) (err error) {
 	err = t.db.Model(&model.Prize{}).
 		Where("activity_uuid", activityUUID).
 		Where("uuid in (?)", uuid).Delete(nil).Error

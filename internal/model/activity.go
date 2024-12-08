@@ -4,25 +4,25 @@ import "gorm.io/gorm"
 
 type Activity struct {
 	Model
-	UUID   int64  `validate:"uid" json:"uuid"`
-	Name   string `validate:"required,min=3,max=50" json:"name"`
-	Url    string `validate:"omitempty,url" json:"url"`
+	UUID   int64  `json:"uuid" validate:"uid"`
+	Name   string `json:"name" validate:"required,noHTML,safaInput,min=3,max=50"`
+	Url    string `json:"url" validate:"omitempty,url"`
 	Type   uint8  `json:"type"`
 	Status uint8  `json:"status"`
 	Cost   uint   `json:"cost"`
-	Info   string `validate:"omitempty,max=255" json:"info"`
+	Info   string `json:"info" validate:"omitempty,noHTML,max=255"`
 }
 
 type Prize struct {
 	Model
 	ActivityUUID int64  `json:"activity_uuid" validate:"uid"`
-	UUID         int64  `validate:"uid" json:"uuid"`
-	Name         string `validate:"required,min=3,max=10" json:"name"`
+	UUID         int64  `json:"uuid" validate:"uid"`
+	Name         string `json:"name" validate:"required,noHTML,safaInput,min=3,max=50"`
 	Type         uint8  `json:"type"`
-	Value        string `validate:"required,max=20" json:"value"`
+	Value        string `json:"value" validate:"required,noHTML,safaInput,min=3,max=50"`
 	InitialStock uint   `json:"initial_stock" validate:"min=1"`
-	Stock        uint   `validate:"ltefield=InitialStock" json:"stock"`
-	Score        uint   `validate:"gt=0"`
+	Stock        uint   `json:"stock" validate:"ltefield=InitialStock"`
+	Score        uint   `json:"score" validate:"gt=0"`
 }
 
 type ActivityRecord struct {

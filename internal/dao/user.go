@@ -33,17 +33,20 @@ func (t *User) Create(user model.UserCreate) (m model.User, err error) {
 		Uid:     user.Uid,
 		PwdHash: user.Password,
 	}
-	err = t.db.Model(&model.User{}).Create(&m).Error
+	err = tx.Model(&model.User{}).Create(&m).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
-	err = t.db.Model(&model.Password{}).Create(&password).Error
+	err = tx.Model(&model.Password{}).Create(&password).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
 	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+	}
 	return
 }
 
@@ -90,16 +93,19 @@ func (t *User) Sign(coin int, sign model.UserSign) (m model.UserSign, err error)
 		err = tx.Error
 		return
 	}
-	err = t.db.Model(&model.UserSign{}).Create(&m).Error
+	err = tx.Model(&model.UserSign{}).Create(&m).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
-	err = t.db.Model(&model.User{}).Where("uid", sign.Uid).Update("coin", coin).Error
+	err = tx.Model(&model.User{}).Where("uid", sign.Uid).Update("coin", coin).Error
 	if err != nil {
 		tx.Rollback()
 	}
 	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+	}
 	return
 }
 

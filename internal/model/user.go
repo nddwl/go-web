@@ -33,11 +33,11 @@ type Password struct {
 
 type UserCreate struct {
 	Uid      int64  `json:"-"`
-	Name     string `validate:"name" json:"name"`
-	Password string `validate:"password" json:"password"`
-	Avatar   string `validate:"omitempty,url" json:"avatar"`
-	Email    string `validate:"email" json:"email"`
-	Phone    string `validate:"omitempty,phone" json:"phone"`
+	Name     string `json:"name" validate:"name"`
+	Password string `json:"password" validate:"password"`
+	Avatar   string `json:"avatar" validate:"omitempty,url"`
+	Email    string `json:"email" validate:"email"`
+	Phone    string `json:"phone" validate:"omitempty,phone"`
 	Code     string `json:"code" validate:"code"`
 	Session  string `json:"-"`
 }
@@ -51,8 +51,8 @@ type PasswordDto struct {
 	Key      string `json:"key"`
 	Value    string `json:"value"`
 	Session  string `json:"-"`
-	Password string `validate:"password" json:"password"`
-	Code     string `validate:"code" json:"code"`
+	Password string `json:"password" validate:"password"`
+	Code     string `json:"code" validate:"code"`
 }
 
 type UserSign struct {

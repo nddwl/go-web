@@ -120,7 +120,7 @@ CREATE TABLE `post`(
                        `source` tinyint unsigned DEFAULT 0,
                        PRIMARY KEY (`id`),
                        UNIQUE KEY (`uuid`) USING BTREE ,
-                       INDEX (`uid`),
+                       INDEX (`uid`) USING BTREE ,
                        FULLTEXT (`title`)
 )ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE Utf8mb4_General_Ci ;
 
@@ -133,7 +133,7 @@ CREATE TABLE `post_tag`(
                            `name` varchar(10) CHARSET utf8mb4 NOT NULL COLLATE Utf8mb4_General_Ci,
                            PRIMARY KEY (`id`),
                            UNIQUE KEY (`uuid`) USING BTREE,
-                           UNIQUE KEY (`name`)
+                           UNIQUE KEY (`name`) USING BTREE
 )ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE Utf8mb4_General_Ci ;
 
 CREATE TABLE `post_association`(
@@ -144,6 +144,6 @@ CREATE TABLE `post_association`(
                                    `post_tag_uuid` bigint NOT NULL ,
                                    `post_uuid` bigint NOT NULL ,
                                    PRIMARY KEY (`id`),
-                                   INDEX (`post_tag_uuid`),
-                                   INDEX (`post_uuid`)
+                                   INDEX (`post_tag_uuid`) USING BTREE ,
+                                   INDEX (`post_uuid`) USING BTREE
 )ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE Utf8mb4_General_Ci ;

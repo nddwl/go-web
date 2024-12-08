@@ -156,32 +156,21 @@ func (t *Activity) DeletePrize(activityUUID int64, uuid ...int64) (err error) {
 	return
 }
 
-func (t *Activity) UpdatePrize(prize ...model.Prize) (err error) {
-	if len(prize) < 1 {
+func (t *Activity) UpdatePrize(prize model.Prize) (err error) {
+	err = validate.Struct(prize)
+	if err != nil {
 		err = ecode.FormatError
 		return
 	}
-	var activityUUID int64
-	for i := 0; i < len(prize); i++ {
-		err = validate.Struct(prize[i])
-		if err != nil {
-			err = ecode.FormatError
-			return
-		}
-		if prize[i].ActivityUUID != activityUUID {
-			activityUUID = prize[i].ActivityUUID
-			list, err1 := t.Rdb.Activity.IsList(activityUUID)
-			if err1 != nil {
-				err = err1
-				return
-			}
-			if list {
-				err = ecode.ActivityIsList
-				return
-			}
-		}
+	list, err := t.Rdb.Activity.IsList(prize.ActivityUUID)
+	if err != nil {
+		return
 	}
-	err = t.Dao.Activity.UpdatePrize(prize...)
+	if list {
+		err = ecode.ActivityIsList
+		return
+	}
+	err = t.Dao.Activity.UpdatePrize(prize)
 	return
 }
 

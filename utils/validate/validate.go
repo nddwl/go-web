@@ -3,10 +3,12 @@ package validate
 import (
 	"github.com/dlclark/regexp2"
 	"github.com/go-playground/validator/v10"
+	"github.com/microcosm-cc/bluemonday"
 	"regexp"
 )
 
 var validate = &validator.Validate{}
+var noHTML = bluemonday.NewPolicy()
 
 func init() {
 	validate = validator.New()
@@ -37,6 +39,15 @@ func init() {
 	validate.RegisterValidation("token", func(fl validator.FieldLevel) bool {
 		token := fl.Field().String()
 		return Token(token)
+	})
+	validate.RegisterValidation("noHTML", func(fl validator.FieldLevel) bool {
+		s := fl.Field().String()
+		fl.Field().SetString(NoHTML(s))
+		return true
+	})
+	validate.RegisterValidation("safeInput", func(fl validator.FieldLevel) bool {
+		s := fl.Field().String()
+		return IsSafeInput(s)
 	})
 }
 
@@ -85,4 +96,13 @@ func Token(token string) bool {
 func Code(code string) bool {
 	re := regexp.MustCompile(`^[a-z0-9]{4}$`)
 	return re.MatchString(code)
+}
+
+func NoHTML(s string) string {
+	return noHTML.Sanitize(s)
+}
+
+func IsSafeInput(s string) bool {
+	re := regexp.MustCompile(`[\x00-\x1F\x7F\x{200B}]`)
+	return !re.MatchString(s)
 }

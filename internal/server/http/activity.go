@@ -141,13 +141,13 @@ func (t *Activity) UpdatePrize(ctx *app.Context) {
 		ctx.JSON(nil, ecode.Forbidden)
 		return
 	}
-	var prize []model.Prize
+	var prize model.Prize
 	err := ctx.ShouldBindJSON(&prize)
 	if err != nil {
 		ctx.JSON(nil, err)
 		return
 	}
-	err = t.Service.Activity.UpdatePrize(prize...)
+	err = t.Service.Activity.UpdatePrize(prize)
 	ctx.JSON(nil, err)
 }
 

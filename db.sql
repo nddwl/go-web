@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS 'order';
-USE `order`;
+CREATE DATABASE IF NOT EXISTS `go_web`;
+USE `go_web`;
 CREATE TABLE `user`(
                        `id` int unsigned NOT NULL AUTO_INCREMENT,
                        `created_at` datetime DEFAULT NULL ,
@@ -113,6 +113,7 @@ CREATE TABLE `post`(
                        `uuid` bigint NOT NULL ,
                        `title` varchar(50) CHARSET utf8mb4 NOT NULL COLLATE Utf8mb4_General_Ci,
                        `uid` bigint NOT NULL ,
+                       `cover` varchar(255) CHARSET utf8mb4 NOT NULL COLLATE Utf8mb4_General_Ci,
                        `category` tinyint unsigned NOT NULL ,
                        `top_category` tinyint unsigned NOT NULL ,
                        `summary` varchar(255) CHARSET utf8mb4 DEFAULT NULL COLLATE Utf8mb4_General_Ci,
@@ -122,7 +123,7 @@ CREATE TABLE `post`(
                        UNIQUE KEY (`uuid`) USING BTREE ,
                        INDEX (`uid`) USING BTREE ,
                        FULLTEXT (`title`)
-)ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE Utf8mb4_General_Ci ;
+)ENGINE Mroonga DEFAULT CHARSET utf8mb4 COLLATE Utf8mb4_General_Ci ;
 
 CREATE TABLE `post_tag`(
                            `id` int unsigned NOT NULL AUTO_INCREMENT,

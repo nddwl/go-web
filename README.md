@@ -21,7 +21,7 @@ openssl rsa -in private.pem -pubout -out public.pem
 ```shell
 docker pull redis
 docker pull rabbitmq:management
-docker pull mysql
+docker pull groonga/mroonga:latest
 ```
 ```shell
 #redis和mysql需要提供密码
@@ -29,7 +29,7 @@ docker pull mysql
 #mysql需要运行db.sql文件中的命令
 docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:management
 docker run --name redis -p 6379:6379 -d redis
-docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=rootpassword -p 3306:3306 -d mysql:latest
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=rootpassword -p 3306:3306 -d groonga/mroonga:latest
 ```
 ### 5. 项目运行
 ```shell

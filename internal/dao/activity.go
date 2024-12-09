@@ -6,6 +6,7 @@ import (
 	"go-web/internal/model"
 	"go-web/utils/ecode"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Activity struct {
@@ -36,12 +37,12 @@ func (t *Activity) Delete(uuid int64) (err error) {
 		err = tx.Error
 		return
 	}
-	err = tx.Model(&model.Activity{}).Where("uuid", uuid).Delete(nil).Error
+	err = tx.Model(&model.Activity{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("uuid", uuid).Delete(nil).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
-	err = tx.Model(&model.Prize{}).Where("activity_uuid", uuid).Delete(nil).Error
+	err = tx.Model(&model.Prize{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("activity_uuid", uuid).Delete(nil).Error
 	if err != nil {
 		tx.Rollback()
 		return
@@ -64,7 +65,7 @@ func (t *Activity) Find(uuid int64) (m1 model.Activity, m2 []model.Prize, err er
 		err = tx.Error
 		return
 	}
-	err = tx.Model(&model.Activity{}).Where("uuid", uuid).Where("status", 1).First(&m1).Error
+	err = tx.Model(&model.Activity{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("uuid", uuid).Where("status", 1).First(&m1).Error
 	if err != nil {
 		if errors.As(err, &gorm.ErrRecordNotFound) {
 			err = ecode.ActivityIsOver
@@ -72,7 +73,7 @@ func (t *Activity) Find(uuid int64) (m1 model.Activity, m2 []model.Prize, err er
 		tx.Rollback()
 		return
 	}
-	err = tx.Model(&model.Prize{}).Where("activity_uuid", uuid).Find(&m2).Error
+	err = tx.Model(&model.Prize{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("activity_uuid", uuid).Find(&m2).Error
 	if err != nil {
 		tx.Rollback()
 		return
@@ -94,12 +95,12 @@ func (t *Activity) List(uuid int64) (prize []model.Prize, err error) {
 	if tx.Error != nil {
 		return
 	}
-	err = tx.Model(&model.Activity{}).Where("uuid", uuid).Update("status", 1).Error
+	err = tx.Model(&model.Activity{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("uuid", uuid).Update("status", 1).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
-	err = tx.Model(&model.Prize{}).Where("activity_uuid", uuid).Select("uuid", "stock", "score").Find(&prize).Error
+	err = tx.Model(&model.Prize{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("activity_uuid", uuid).Select("uuid", "stock", "score").Find(&prize).Error
 	if err != nil || len(prize) < 1 {
 		tx.Rollback()
 		return
@@ -179,12 +180,12 @@ func (t *Activity) FindRecord(uid int64, page int) (m []model.ActivityRecord, p 
 		err = tx.Error
 		return
 	}
-	err = tx.Model(&model.ActivityRecord{}).Where("uid", uid).Count(&p.Total).Error
+	err = tx.Model(&model.ActivityRecord{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("uid", uid).Count(&p.Total).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
-	err = tx.Model(&model.ActivityRecord{}).Scopes(p.Sql()).Where("uid", uid).Find(&m).Error
+	err = tx.Model(&model.ActivityRecord{}).Clauses(clause.Locking{Strength: "SHARE"}).Scopes(p.Sql()).Where("uid", uid).Find(&m).Error
 	if err != nil {
 		tx.Rollback()
 		return

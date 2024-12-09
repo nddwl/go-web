@@ -5,6 +5,7 @@ import (
 	"go-web/internal/model"
 	"go-web/utils/ecode"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type User struct {
@@ -98,7 +99,7 @@ func (t *User) Sign(coin int, sign model.UserSign) (m model.UserSign, err error)
 		tx.Rollback()
 		return
 	}
-	err = tx.Model(&model.User{}).Where("uid", sign.Uid).Update("coin", coin).Error
+	err = tx.Model(&model.User{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("uid", sign.Uid).Update("coin", coin).Error
 	if err != nil {
 		tx.Rollback()
 	}

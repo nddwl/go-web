@@ -7,7 +7,7 @@ import (
 
 type User struct {
 	Model
-	Uid    int64  `json:"-"`
+	Uid    int64  `json:"uid"`
 	Name   string `json:"name"`
 	Avatar string `json:"avatar"`
 	Email  string `json:"email"`
@@ -57,7 +57,7 @@ type PasswordDto struct {
 
 type UserSign struct {
 	Model
-	Uid    int64  `json:"-"`
+	Uid    int64  `json:"uid"`
 	Status uint8  `json:"status"`
 	Reward string `json:"reward"`
 }

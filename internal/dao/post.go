@@ -34,8 +34,10 @@ func (t *Post) Create(post model.Post, tag []*model.PostTag) (m1 model.Post, m2 
 	}
 	association := make([]*model.PostAssociation, len(tag))
 	for i := 0; i < len(tag); i++ {
-		association[i].PostUUID = post.UUID
-		association[i].PostTagUUID = tag[i].UUID
+		association[i] = &model.PostAssociation{
+			PostTagUUID: tag[i].UUID,
+			PostUUID:    post.UUID,
+		}
 	}
 	err = tx.Model(&model.PostAssociation{}).Create(&association).Error
 	if err != nil {

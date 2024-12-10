@@ -22,10 +22,16 @@ func (t *Post) Create(post model.PostCreate) (err error) {
 		err = ecode.FormatError
 		return
 	}
+	if len(post.Tag) < 1 {
+		err = ecode.FormatError
+		return
+	}
 	tag := make([]*model.PostTag, len(post.Tag))
 	for i := 0; i < len(post.Tag); i++ {
-		tag[i].UUID = utils.GenerateUid()
-		tag[i].Name = post.Tag[i]
+		tag[i] = &model.PostTag{
+			UUID: utils.GenerateUid(),
+			Name: post.Tag[i],
+		}
 	}
 	_, _, err = t.Dao.Post.Create(post.Post, tag)
 	return

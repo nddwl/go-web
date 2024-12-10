@@ -30,6 +30,7 @@ func (t *User) initGroup() {
 	t.Group.POST("/logout", t.Logout)
 	t.Group.GET("/isNameExists", t.IsNameExists)
 	t.Group.POST("/sign", t.Sign)
+	t.Group.GET("/register", t.Register)
 }
 
 func (t *User) Create(ctx *app.Context) {

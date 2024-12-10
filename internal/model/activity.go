@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Activity struct {
 	Model
 	UUID   int64  `json:"uuid" validate:"uid"`
-	Name   string `json:"name" validate:"required,noHTML,safaInput,min=3,max=50"`
+	Name   string `json:"name" validate:"required,noHTML,safeInput,min=3,max=50"`
 	Url    string `json:"url" validate:"omitempty,url"`
 	Type   uint8  `json:"type"`
 	Status uint8  `json:"status"`
@@ -17,9 +17,9 @@ type Prize struct {
 	Model
 	ActivityUUID int64  `json:"activity_uuid" validate:"uid"`
 	UUID         int64  `json:"uuid" validate:"uid"`
-	Name         string `json:"name" validate:"required,noHTML,safaInput,min=3,max=50"`
+	Name         string `json:"name" validate:"required,noHTML,safeInput,min=3,max=50"`
 	Type         uint8  `json:"type"`
-	Value        string `json:"value" validate:"required,noHTML,safaInput,min=3,max=50"`
+	Value        string `json:"value" validate:"required,noHTML,safeInput,min=3,max=50"`
 	InitialStock uint   `json:"initial_stock" validate:"min=1"`
 	Stock        uint   `json:"stock" validate:"ltefield=InitialStock"`
 	Score        uint   `json:"score" validate:"gt=0"`

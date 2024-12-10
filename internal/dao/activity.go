@@ -1,11 +1,8 @@
 package dao
 
 import (
-	"errors"
 	"fmt"
 	"go-web/internal/model"
-	"go-web/utils/ecode"
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -60,28 +57,12 @@ func (t *Activity) Update(activity model.Activity) (err error) {
 }
 
 func (t *Activity) Find(uuid int64) (m1 model.Activity, m2 []model.Prize, err error) {
-	tx := t.db.Begin()
-	if tx.Error != nil {
-		err = tx.Error
+	err = t.db.Model(&model.Activity{}).Where("uuid", uuid).Where("status", 1).First(&m1).Error
+	if err != nil {
+
 		return
 	}
-	err = tx.Model(&model.Activity{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("uuid", uuid).Where("status", 1).First(&m1).Error
-	if err != nil {
-		if errors.As(err, &gorm.ErrRecordNotFound) {
-			err = ecode.ActivityIsOver
-		}
-		tx.Rollback()
-		return
-	}
-	err = tx.Model(&model.Prize{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("activity_uuid", uuid).Find(&m2).Error
-	if err != nil {
-		tx.Rollback()
-		return
-	}
-	err = tx.Commit().Error
-	if err != nil {
-		tx.Rollback()
-	}
+	err = t.db.Model(&model.Prize{}).Where("activity_uuid", uuid).Find(&m2).Error
 	return
 }
 
@@ -100,7 +81,7 @@ func (t *Activity) List(uuid int64) (prize []model.Prize, err error) {
 		tx.Rollback()
 		return
 	}
-	err = tx.Model(&model.Prize{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("activity_uuid", uuid).Select("uuid", "stock", "score").Find(&prize).Error
+	err = tx.Model(&model.Prize{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("activity_uuid", uuid).Select("uuid", "stock", "score").Find(&prize).Error
 	if err != nil || len(prize) < 1 {
 		tx.Rollback()
 		return
@@ -159,8 +140,7 @@ func (t *Activity) UpdatePrizeStock(data map[string]string) (err error) {
 	}
 	cases += " END"
 
-	sql := fmt.Sprintf("UPDATE prize SET stock = %s WHERE uuid IN (?)", cases)
-
+	sql := fmt.Sprintf("UPDATE prize SET stock = %s WHERE UUID IN (?)", cases)
 	return t.db.Exec(sql, uuids).Error
 }
 
@@ -175,24 +155,10 @@ func (t *Activity) FindRecord(uid int64, page int) (m []model.ActivityRecord, p 
 		PageSize: 20,
 		Total:    0,
 	}
-	tx := t.db.Begin()
-	if tx.Error != nil {
-		err = tx.Error
+	err = t.db.Model(&model.ActivityRecord{}).Where("uid", uid).Scopes(p.Sql()).Find(&m).Error
+	if err != nil {
 		return
 	}
-	err = tx.Model(&model.ActivityRecord{}).Clauses(clause.Locking{Strength: "SHARE"}).Where("uid", uid).Count(&p.Total).Error
-	if err != nil {
-		tx.Rollback()
-		return
-	}
-	err = tx.Model(&model.ActivityRecord{}).Clauses(clause.Locking{Strength: "SHARE"}).Scopes(p.Sql()).Where("uid", uid).Find(&m).Error
-	if err != nil {
-		tx.Rollback()
-		return
-	}
-	err = tx.Commit().Error
-	if err != nil {
-		tx.Rollback()
-	}
+	err = t.db.Model(&model.ActivityRecord{}).Where("uid", uid).Count(&p.Total).Error
 	return
 }

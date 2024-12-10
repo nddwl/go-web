@@ -17,6 +17,7 @@ type Group struct {
 	User     *User
 	Passport *Passport
 	Activity *Activity
+	Post     *Post
 }
 
 func New() *Service {
@@ -34,5 +35,6 @@ func (t *Service) initGroup() {
 		User:     NewUser(t),
 		Passport: NewPassport(t),
 		Activity: NewActivity(t),
+		Post:     NewPost(t),
 	}
 }

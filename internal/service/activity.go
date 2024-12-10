@@ -19,7 +19,7 @@ func NewActivity(service *Service) *Activity {
 
 func (t *Activity) Create(activity model.Activity) (m model.Activity, err error) {
 	activity.UUID = utils.GenerateUid()
-	err = validate.Struct(activity)
+	err = validate.Struct(&activity)
 	if err != nil {
 		err = ecode.FormatError
 		return
@@ -46,7 +46,7 @@ func (t *Activity) Delete(uuid int64) (err error) {
 }
 
 func (t *Activity) Update(activity model.Activity) (err error) {
-	err = validate.Struct(activity)
+	err = validate.Struct(&activity)
 	if err != nil {
 		err = ecode.FormatError
 		return
@@ -110,7 +110,7 @@ func (t *Activity) CreatePrize(prize ...model.Prize) (m []*model.Prize, err erro
 	var activityUUID int64
 	for i := 0; i < len(prize); i++ {
 		prize[i].UUID = utils.GenerateUid()
-		err = validate.Struct(prize[i])
+		err = validate.Struct(&prize[i])
 		if err != nil {
 			err = ecode.FormatError
 			return
@@ -157,7 +157,7 @@ func (t *Activity) DeletePrize(activityUUID int64, uuid ...int64) (err error) {
 }
 
 func (t *Activity) UpdatePrize(prize model.Prize) (err error) {
-	err = validate.Struct(prize)
+	err = validate.Struct(&prize)
 	if err != nil {
 		err = ecode.FormatError
 		return

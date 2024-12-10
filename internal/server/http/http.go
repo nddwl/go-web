@@ -17,6 +17,7 @@ type Group struct {
 	User     *User
 	Passport *Passport
 	Activity *Activity
+	Post     *Post
 }
 
 func New() *Server {
@@ -34,6 +35,7 @@ func (t *Server) init() {
 		User:     NewUser(t),
 		Passport: NewPassport(t),
 		Activity: NewActivity(t),
+		Post:     NewPost(t),
 	}
 	t.App.Gin.Use(middleware.Cors())
 	t.App.Use(t.Passport.GetPassport)
@@ -43,6 +45,7 @@ func (t *Server) initGroup() {
 	t.User.initGroup()
 	t.Passport.initGroup()
 	t.Activity.initGroup()
+	t.Post.initGroup()
 }
 
 func (t *Server) Run() error {

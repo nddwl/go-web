@@ -115,7 +115,6 @@ CREATE TABLE `post`(
                        `uid` bigint NOT NULL ,
                        `cover` varchar(255) CHARSET utf8mb4 NOT NULL COLLATE Utf8mb4_General_Ci,
                        `category` tinyint unsigned NOT NULL ,
-                       `top_category` tinyint unsigned NOT NULL ,
                        `summary` varchar(255) CHARSET utf8mb4 DEFAULT NULL COLLATE Utf8mb4_General_Ci,
                        `content` text CHARSET utf8mb4 NOT NULL COLLATE Utf8mb4_General_Ci,
                        `source` tinyint unsigned DEFAULT 0,

@@ -6,8 +6,7 @@ import (
 )
 
 func main() {
-	server := server.New()
-	err := server.Run()
+	err := server.New().Run()
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-web/internal/model"
 	"go-web/utils/ecode"
@@ -39,6 +40,7 @@ func (app *App) parse(ctx *Context) {
 			ctx.JSON(nil, ecode.ServerErr)
 			ctx.Abort()
 		}
+		fmt.Println(string(ctx.Request.Resource))
 	} else {
 		ctx.Request = &Request{}
 	}

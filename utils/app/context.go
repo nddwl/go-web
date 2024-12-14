@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"go-web/internal/model"
@@ -22,14 +21,14 @@ type Context struct {
 }
 
 type Request struct {
-	Resource string
+	Resource json.RawMessage `json:"resource"`
 }
 
 type Response struct {
-	Code     int
-	Message  string
-	Success  bool
-	Resource string
+	Code     int         `json:"code"`
+	Message  string      `json:"message"`
+	Success  bool        `json:"success"`
+	Resource interface{} `json:"resource"`
 }
 
 func (ctx *Context) Abort() {
@@ -51,20 +50,11 @@ func (ctx *Context) Status(code int) {
 
 func (ctx *Context) JSON(obj interface{}, err error) {
 	code := ecode.Cause(err)
-	var data []byte
-	if err == nil {
-		var err1 error
-		data, err1 = json.Marshal(&obj)
-		if err1 != nil {
-			fmt.Printf("app->Context->JSON->json.Marshal Err:%v\n", err1)
-			err = err1
-		}
-	}
 	ctx.Ctx.JSON(200, &Response{
 		Code:     code.Code(),
 		Message:  code.Message(),
 		Success:  err == nil,
-		Resource: string(data),
+		Resource: obj,
 	})
 }
 
@@ -98,7 +88,7 @@ func (ctx *Context) String(code int, format string, values ...any) {
 }
 
 func (ctx *Context) ShouldBindJSON(obj interface{}) error {
-	err := json.Unmarshal([]byte(ctx.Request.Resource), &obj)
+	err := json.Unmarshal(ctx.Request.Resource, &obj)
 	if err != nil {
 		return ecode.FormatError
 	}
@@ -106,11 +96,11 @@ func (ctx *Context) ShouldBindJSON(obj interface{}) error {
 }
 
 func (ctx *Context) ParseRequestResource(path string) gjson.Result {
-	return gjson.Get(ctx.Request.Resource, path)
+	return gjson.Get(string(ctx.Request.Resource), path)
 }
 
 func (ctx *Context) ParseRequestResourceMany(path ...string) []gjson.Result {
-	return gjson.GetMany(ctx.Request.Resource, path...)
+	return gjson.GetMany(string(ctx.Request.Resource), path...)
 }
 
 func (ctx *Context) IsLogin() bool {
@@ -142,6 +132,10 @@ func (ctx *Context) ParseUserAgent() (ua string, deviceType, deviceName string) 
 		}
 	}
 	return
+}
+
+func (ctx *Context) Redirect(code int, location string) {
+	ctx.Ctx.Redirect(code, location)
 }
 
 // IsAdmin 此方法在ctx.User初始化后可用

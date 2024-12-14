@@ -56,8 +56,5 @@ func (t *Passport) GetPassport(token string) (m model.PassportDto, err error) {
 		return
 	}
 	m, err = t.Rdb.Passport.GetPassport(token)
-	if err != nil {
-		return
-	}
 	return
 }

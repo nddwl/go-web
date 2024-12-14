@@ -1,4 +1,4 @@
-package http
+package server
 
 import (
 	"go-web/internal/model"
@@ -80,8 +80,8 @@ func (t *Activity) Find(ctx *app.Context) {
 	result := ctx.ParseRequestResource("activity_uuid")
 	m1, m2, err := t.Service.Activity.Find(result.Int())
 	ctx.JSON(&struct {
-		Activity model.Activity
-		Prize    []model.Prize
+		Activity model.Activity `json:"activity"`
+		Prize    []model.Prize  `json:"prize"`
 	}{m1, m2}, err)
 }
 
@@ -184,7 +184,7 @@ func (t *Activity) FindRecord(ctx *app.Context) {
 	page := ctx.ParseRequestResource("page").Int()
 	m, p, err := t.Service.Activity.FindRecord(ctx.Passport.Uid, int(page))
 	ctx.JSON(&struct {
-		Record     []model.ActivityRecord
-		Pagination model.Pagination
+		Record     []model.ActivityRecord `json:"record"`
+		Pagination model.Pagination       `json:"pagination"`
 	}{m, p}, err)
 }

@@ -1,4 +1,4 @@
-package http
+package server
 
 import (
 	"encoding/json"
@@ -25,16 +25,16 @@ func (t *User) initGroup() {
 	t.Group.POST("/delete", t.Delete)
 	t.Group.POST("/update", t.Update)
 	t.Group.GET("/find", t.Find)
-	t.Group.GET("/login", t.Login)
+	t.Group.POST("/login", t.Login)
 	t.Group.POST("/auth", t.Auth)
 	t.Group.POST("/logout", t.Logout)
 	t.Group.GET("/isNameExists", t.IsNameExists)
 	t.Group.POST("/sign", t.Sign)
-	t.Group.GET("/register", t.Register)
+	t.Group.POST("/register", t.Register)
 }
 
 func (t *User) Create(ctx *app.Context) {
-	data, err := utils.Decrypt(ctx.Request.Resource)
+	data, err := utils.Decrypt(string(ctx.Request.Resource))
 	if err != nil {
 		ctx.JSON(nil, ecode.FormatError)
 		return
@@ -45,15 +45,7 @@ func (t *User) Create(ctx *app.Context) {
 		ctx.JSON(nil, ecode.FormatError)
 		return
 	}
-	session, err := ctx.Cookie("SESS__REGISTER")
-	if err != nil {
-		ctx.JSON(nil, ecode.BadRequest)
-	}
-	user.Session = session
 	_, err = t.Service.User.Create(user)
-	if err == nil {
-		ctx.SetCookies("SESS__REGISTER", "", 0, "/user/create", "127.0.0.1", false, true)
-	}
 	ctx.JSON(nil, err)
 }
 
@@ -88,23 +80,18 @@ func (t *User) Find(ctx *app.Context) {
 }
 
 func (t *User) Auth(ctx *app.Context) {
-	data, err := utils.Decrypt(ctx.Request.Resource)
+	data, err := utils.Decrypt(string(ctx.Request.Resource))
 	if err != nil {
 		ctx.JSON(nil, ecode.FormatError)
 		return
 	}
-	passwordDto := model.PasswordDto{}
-	err = json.Unmarshal(data, &passwordDto)
+	login := model.UserLogin{}
+	err = json.Unmarshal(data, &login)
 	if err != nil {
 		ctx.JSON(nil, ecode.FormatError)
 		return
 	}
-	session, err := ctx.Cookie("SESS__LOGIN")
-	if err != nil {
-		ctx.JSON(nil, ecode.BadRequest)
-	}
-	passwordDto.Session = session
-	uid, err := t.Service.User.Login(passwordDto)
+	uid, err := t.Service.User.Login(login)
 	if err != nil {
 		ctx.JSON(nil, err)
 		return
@@ -114,35 +101,40 @@ func (t *User) Auth(ctx *app.Context) {
 		Ip:  ctx.ClientIP(),
 		Ua:  ctx.GetHeader("User-Agent"),
 	})
-	ctx.SetCookies("SESS__LOGIN", "", 0, "/user/auth", "127.0.0.1", false, true)
-	ctx.SetCookies("__PASSPORT", m.Token, 60*60*24*30, "/", "127.0.0.1", false, true)
-	ctx.JSON(nil, err)
+	ctx.SetCookies("__PASSPORT", m.Token, 60*60*24*30, "/", "", false, true)
+	ctx.JSON(&m, err)
 }
 
 func (t *User) Register(ctx *app.Context) {
+	if ctx.IsLogin() {
+		ctx.JSON(nil, ecode.ServerErr)
+		return
+	}
 	id, b64s, _, err := t.Service.Rdb.Captcha.Generate("register", time.Minute*15)
 	if err != nil {
 		ctx.JSON(nil, err)
 		return
 	}
-	ctx.SetCookies("SESS__REGISTER", id, -1, "/user/create", "", false, true)
-	ctx.JSON(&struct {
-		Code   string
-		Public string
-	}{b64s, utils.GetPublicKey()}, nil)
+	ctx.JSON(&model.Code{
+		Captcha: b64s,
+		Session: id,
+	}, nil)
 }
 
 func (t *User) Login(ctx *app.Context) {
+	if ctx.IsLogin() {
+		ctx.JSON(nil, ecode.ServerErr)
+		return
+	}
 	id, b64s, _, err := t.Service.Rdb.Captcha.Generate("login", time.Minute*15)
 	if err != nil {
 		ctx.JSON(nil, err)
 		return
 	}
-	ctx.SetCookies("SESS__LOGIN", id, -1, "/user/auth", "", false, true)
-	ctx.JSON(&struct {
-		Code   string
-		Public string
-	}{b64s, utils.GetPublicKey()}, nil)
+	ctx.JSON(&model.Code{
+		Captcha: b64s,
+		Session: id,
+	}, nil)
 }
 
 func (t *User) Logout(ctx *app.Context) {
@@ -151,7 +143,6 @@ func (t *User) Logout(ctx *app.Context) {
 		return
 	}
 	err := t.Service.Passport.Delete(ctx.Passport.Uid, ctx.Passport.DeviceId)
-	ctx.SetCookies("__PASSPORT", "", 0, "/", "127.0.0.1", false, true)
 	ctx.JSON(nil, err)
 }
 

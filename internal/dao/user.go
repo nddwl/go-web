@@ -23,12 +23,10 @@ func (t *User) Create(user model.UserCreate) (m model.User, err error) {
 		return
 	}
 	m = model.User{
-		Uid:    user.Uid,
-		Name:   user.Name,
-		Avatar: user.Avatar,
-		Email:  user.Email,
-		Phone:  user.Phone,
-		Role:   1,
+		Uid:   user.Uid,
+		Name:  user.Name,
+		Email: user.Email,
+		Role:  1,
 	}
 	password := model.Password{
 		Uid:     user.Uid,

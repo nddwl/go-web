@@ -6,7 +6,7 @@ type Post struct {
 	Title    string `json:"title" validate:"required,noHTML,safeInput,min=3,max=50"`
 	UID      int64  `json:"uid" validate:"uid"`
 	Cover    string `json:"cover"`
-	Category uint8  `json:"category"`
+	Category uint8  `json:"category" validate:"min=1"`
 	Summary  string `json:"summary" validate:"required,noHTML,max=255"`
 	Content  string `json:"content" validate:"required"`
 	Source   uint8  `json:"source" validate:"omitempty,oneof=0 1"`

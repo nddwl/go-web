@@ -1,4 +1,4 @@
-package http
+package server
 
 import (
 	"go-web/internal/model"
@@ -79,8 +79,8 @@ func (t *Post) Find(ctx *app.Context) {
 	postUUID := ctx.ParseRequestResource("post_uuid").Int()
 	m, tag, err := t.Service.Post.Find(postUUID)
 	ctx.JSON(&struct {
-		Post model.Post
-		Tag  []string
+		Post model.Post `json:"post"`
+		Tag  []string   `json:"tag"`
 	}{m, tag}, err)
 }
 
@@ -98,7 +98,7 @@ func (t *Post) Finds(ctx *app.Context) {
 	m, p, err := t.Service.Post.Finds(find)
 	ctx.JSON(&struct {
 		PostCover  []model.PostCover `json:"post_cover"`
-		Pagination model.Pagination
+		Pagination model.Pagination  `json:"pagination"`
 	}{m, p}, err)
 }
 
@@ -112,6 +112,6 @@ func (t *Post) FindByUid(ctx *app.Context) {
 	m, p, err := t.Service.Post.FindByUid(uid, page)
 	ctx.JSON(&struct {
 		PostCover  []model.PostCover `json:"post_cover"`
-		Pagination model.Pagination
+		Pagination model.Pagination  `json:"pagination"`
 	}{m, p}, err)
 }

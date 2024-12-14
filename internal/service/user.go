@@ -82,37 +82,31 @@ func (t *User) Find(name string) (m model.User, err error) {
 	return
 }
 
-func (t *User) Login(dto model.PasswordDto) (uid int64, err error) {
-	err = validate.Struct(&dto)
+func (t *User) Login(login model.UserLogin) (uid int64, err error) {
+	err = validate.Struct(&login)
 	if err != nil {
 		err = ecode.FormatError
 		return
 	}
-	switch dto.Key {
-	case "name":
-		if !validate.Name(dto.Value) {
-			err = ecode.FormatError
-			return
-		}
-	case "email":
-		if !validate.Email(dto.Value) {
-			err = ecode.FormatError
-			return
-		}
+	switch {
+	case validate.Name(login.Name):
+		login.Type = "name"
+	case validate.Email(login.Name):
+		login.Type = "email"
 	default:
 		err = ecode.FormatError
 		return
 	}
-	if !t.Service.Rdb.Captcha.Verify(dto.Session, "login", dto.Code) {
+	if !t.Service.Rdb.Captcha.Verify(login.Session, "login", login.Code) {
 		err = ecode.BadRequest
 		return
 	}
-	password, err := t.Dao.User.Login(dto.Key, dto.Value)
+	password, err := t.Dao.User.Login(login.Type, login.Name)
 	if err != nil {
 		err = ecode.UserLoginFailed
 		return
 	}
-	if utils.ComparePassword(password.PwdHash, dto.Password) {
+	if utils.ComparePassword(password.PwdHash, login.Password) {
 		uid = password.Uid
 		return
 	} else {
@@ -169,7 +163,6 @@ func (t *User) GetUser(uid int64) (m model.User, err error) {
 		Name:   user["name"],
 		Avatar: user["avatar"],
 		Email:  user["email"],
-		Phone:  user["phone"],
 	}
 	m.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", user["create_at"])
 	m.Exp, _ = strconv.Atoi(user["exp"])

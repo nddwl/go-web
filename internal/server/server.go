@@ -1,4 +1,4 @@
-package http
+package server
 
 import (
 	"go-web/internal/service"

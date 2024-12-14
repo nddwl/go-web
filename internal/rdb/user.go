@@ -31,7 +31,6 @@ func (t *User) Create(user model.User) (err error) {
 		"name":      user.Name,
 		"avatar":    user.Avatar,
 		"email":     user.Email,
-		"phone":     user.Phone,
 		"exp":       user.Exp,
 		"coin":      user.Coin,
 		"status":    user.Status,

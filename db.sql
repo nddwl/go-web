@@ -9,7 +9,6 @@ CREATE TABLE `user`(
                        `name` varchar(10) CHARSET utf8mb4 NOT NULL COLLATE Utf8mb4_General_Ci,
                        `avatar` varchar(255) CHARSET utf8mb4 DEFAULT NULL COLLATE Utf8mb4_General_Ci,
                        `email` varchar(40) CHARSET utf8mb4 DEFAULT NULL COLLATE Utf8mb4_General_Ci,
-                       `phone` varchar(11) CHARSET utf8mb4 DEFAULT NULL COLLATE Utf8mb4_General_Ci,
                        `exp` int DEFAULT 0,
                        `coin` int DEFAULT 0,
                        `status` tinyint unsigned DEFAULT 0,
@@ -120,9 +119,9 @@ CREATE TABLE `post`(
                        `source` tinyint unsigned DEFAULT 0,
                        PRIMARY KEY (`id`),
                        UNIQUE KEY (`uuid`) USING BTREE ,
-                       INDEX (`uid`) USING BTREE ,
+                       INDEX (`uid`) USING BTREE,
                        FULLTEXT (`title`)
-)ENGINE Mroonga DEFAULT CHARSET utf8mb4 COLLATE Utf8mb4_General_Ci ;
+)ENGINE InnoDB DEFAULT CHARSET utf8mb4 COLLATE Utf8mb4_General_Ci ;
 
 CREATE TABLE `post_tag`(
                            `id` int unsigned NOT NULL AUTO_INCREMENT,
